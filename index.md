@@ -127,7 +127,7 @@ Blog post written by Andreas Mayr (mayr[at]ml.jku.at) and Johannes Brandstetter 
 
 
 
-[arxiv-paper]: https://arxiv.org/abs/2105.01636
+[arxiv-paper]: https://arxiv.org/abs/2106.11299
 [SanchezGonzalez2020]: https://arxiv.org/abs/2002.09405
 [liggghts]: https://doi.org/10.1504/PCFD.2012.047457
 [DEM]: https://www.icevirtuallibrary.com/doi/pdf/10.1680/ege.35362.0025
