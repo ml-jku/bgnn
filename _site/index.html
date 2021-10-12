@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    
+    
+    <script async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    
+    
+    
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Boundary Graph Neural Networks for 3D Simulations | bgnn</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Boundary Graph Neural Networks for 3D Simulations" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Blog post" />
+<meta property="og:description" content="Blog post" />
+<link rel="canonical" href="http://localhost:4000/" />
+<meta property="og:url" content="http://localhost:4000/" />
+<meta property="og:site_name" content="bgnn" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-06-15T18:00:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Boundary Graph Neural Networks for 3D Simulations" />
+<script type="application/ld+json">
+{"datePublished":"2020-06-15T18:00:00+02:00","@type":"WebSite","url":"http://localhost:4000/","headline":"Boundary Graph Neural Networks for 3D Simulations","dateModified":"2020-06-15T18:00:00+02:00","description":"Blog post","name":"bgnn","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=1c954638603771b942aa98e7e1a35a6e903c3416">
+  </head>
+  <body>
+    <!--<a id="skip-to-content" href="#content">Skip to the content.</a>-->
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Boundary Graph Neural Networks for 3D Simulations</h1>
+      <h2 class="project-tagline">Blog post</h2>
+      
+        <a href="https://github.com/ml-jku/bgnn" class="btn">View on GitHub</a>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <p>Blog post of the paper <a href="https://arxiv.org/abs/2106.11299">Boundary Graph Neural Networks for 3D Simulations</a>.
+<br />
+<br /></p>
+<hr style="border-top: 1px solid #8c8b8b" />
+
+<h2 id="overview">Overview</h2>
+
+<ul>
+  <li><a href="#part1">Goal</a></li>
+  <li><a href="#part2">Learning Simulations</a></li>
+  <li><a href="#part3">BGNNs</a></li>
+  <li><a href="#part4">Basic Evaluation</a></li>
+  <li><a href="#part5">Out-of Distribution (OOD) Experiments</a>
+<br />
+<br /></li>
+</ul>
+<hr style="border-top: 1px solid #8c8b8b" />
+
+<p><br /></p>
+
+<h1 id="our-aim-">Our aim <a name="part1"></a></h1>
+
+<p>We want to learn complex 3D particle simulation trajectories from an initial state over many, many timesteps.
+Seminal research on this topic was already carried out by <a href="https://arxiv.org/abs/2002.09405">Sanchez-Gonzalez et al. [2020]</a>. They showed impressively how well particle simulation
+trajectories can be learned by Graph Neural Networks (GNNs):</p>
+
+<p align="center"> 
+<iframe src="https://drive.google.com/file/d/1Udj80oklio3QIZGun2c8FSYU4hOZn0AV/preview" width="640" height="480"></iframe>
+</p>
+
+<p>In this work we want to go one step further.
+We aim to learn 3D simulations by Graph Neural Networks (GNNs) towards <strong>industrially relevant setups</strong>, such as hoppers and rotating drums.
+This means we have to model complex geometric boundaries with triangularized surface areas.
+However, such triangularized surface areas are notoriously difficult to model by machine learning approaches due to their heterogeneity with respect to size and orientation.</p>
+
+<p>Exemplary setups from daily industrial use cases, hopper (left) and a rotating drum (right).</p>
+
+<p align="center"> 
+<img src="assets/meshes.png" height="300" alt="Example for Triangle Meshes" />
+</p>
+
+<p>This task is far beyond trivial. The following examples show models for which <strong>particle - particle</strong> interactions are already learned pretty well as in the work of <a href="https://arxiv.org/abs/2002.09405">Sanchez-Gonzalez et al. [2020]</a>, but <strong>particle - wall</strong> interactions are not modeled correctly	:</p>
+
+<p><img src="/assets/drum_coh/failure.gif" alt="poor drum trajectory prediction" />
+<br />
+<br />
+<img src="/assets/hopper_coh/failure.gif" alt="poor hopper trajectory prediction" /></p>
+
+<h1 id="how-do-we-learn-simulations-">How do we learn simulations? <a name="part2"></a></h1>
+
+<p>Our research is based on particle simulations from the particle simulator <a href="https://doi.org/10.1504/PCFD.2012.047457">LIGGGHTS</a>, which is based on the <a href="https://www.icevirtuallibrary.com/doi/pdf/10.1680/ege.35362.0025">Discrete Element Method (DEM)</a> and which is able to take complex mesh-based wall geometries into account.
+We consider trajectories from this simulator as our <strong>ground truth simulations</strong>.</p>
+
+<p>The core in learning to predict such simulations, is to accurately learn a <strong>time-transition model</strong>, which predicts from a previous state (or some previous states) the next state.
+For this, we basically follow Sanchez-Gonzalez et al. [2020], i.e. our GNN predicts the <strong>acceleration</strong> of particles and semi-implicit Euler integration is used to obtain the next particle velocities and positions:</p>
+
+\[\begin{align}
+\dot{\boldsymbol{x}}^{t+1} &amp;=\dot{\boldsymbol{x}}^{t}+\Delta t\; \ddot{\boldsymbol{x}}^{t} \\
+\boldsymbol{x}^{t+1} &amp;=\boldsymbol{x}^{t}+\Delta t\; \dot{\boldsymbol{x}}^{t+1} \,
+\end{align}\]
+
+<p>where \(\boldsymbol{x}\) represents the position of a particle, \(\dot{\boldsymbol{x}}\) represents the particle velocity and \(\ddot{\boldsymbol{x}}\) represents the particle acceleration.</p>
+
+<h1 id="boundary-graph-neural-networks-bgnns-">Boundary Graph Neural Networks (BGNNs) <a name="part3"></a></h1>
+
+<p>BGNNs extend traditional GNNs, such that the networks are capable of learning <strong>particle - wall interactions</strong> by dynamically inserting (virtual particle) nodes, if a particle is near a wall. Since we are focusing on the 3D domain, we do not sample all boundary surfaces and represent theses surfaces as static particles across the whole time. Instead  we insert additional nodes into the graph (representing virtual particles) if a boundary surface area is near a particle. Additionally, we enrich the feature space of GNN inputs in order to make e.g. wall <strong>normal vector</strong> information available for the graph network to learn a time transition model.
+The images below visualize the basic idea of BGNNs (measuring distances between walls and particles, insertion of virtual particle for wall if distance is smaller than a threshold):</p>
+
+<style type="text/css">
+      tr.hide_all > td {
+        border-style:hidden;
+      }
+  }
+</style>
+
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<tr class="hide_all">
+
+<td width="50%">
+<p align="center"> 
+<img src="assets/vars_first.png" height="300" alt="Insertion of wall nodes in BGNNs" />
+</p>
+</td>
+<td width="50%">
+<p align="center"> 
+<img src="assets/vars_sec.png" height="300" alt="Insertion of wall nodes in BGNNs" />
+</p>
+</td>
+
+</tr>
+</table>
+
+<h1 id="does-it-work-">Does it work? <a name="part4"></a></h1>
+
+<p>We apply BGNNs to hoppers and rotating drums and use two different materials. For the <strong>cohesive</strong> material, there are large cohesive forces between the particles, while
+for the <strong>non-cohesive</strong> material, we are not making use of these additional forces. An exemplary cohesive material could be asphalt in a paver, whereas an exemplary non-cohesive material could be gravel.
+For both materials we do not assume additional cohesion between particles and walls.
+Other than that there are (rolling) friction and restitution forces between particles themselves and between particles and walls.</p>
+
+<h2 id="models-with-a-cohesive-material">Models with a Cohesive Material</h2>
+
+<p><img src="/assets/drum_coh/anim1.gif" alt="Example for Drum prediction with cohesive material" />
+<br />
+<img src="/assets/hopper_coh/anim1.gif" alt="Example for Hopper prediction with cohesive material" /></p>
+
+<h2 id="models-with-a-non-cohesive-material">Models with a Non-Cohesive Material</h2>
+
+<p><img src="/assets/drum_noncoh/anim1.gif" alt="Example for Drum prediction with non-cohesive material" />
+<br />
+<img src="/assets/hopper_noncoh/anim2.gif" alt="Example for Hopper prediction with non-cohesive material - Geometry 1" />
+<br />
+<br />
+<img src="/assets/hopper_noncoh/anim1.gif" alt="Example for Hopper prediction with non-cohesive material - Geometry 2" /></p>
+
+<p>BGNNs have learned to accurately reproduce 3D granular flows over hundreds of thousands of simulation timesteps,
+and most notably particles completely stay within the geometric objects without using handcrafted conditions or restrictions.</p>
+
+<h1 id="out-of-distribution-ood-experiments-">Out-of Distribution (OOD) Experiments <a name="part5"></a></h1>
+
+<p>We further considered the case of OOD settings for the drum and the hopper. Compared with training and validation sets we changed the geometry
+for the test set samples.</p>
+
+<h3 id="drum">Drum</h3>
+<p>The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+For OOD test samples the length of the cylinder has increased compared to training and test samples.
+<br />
+<br />
+<img src="/assets/ood/drum_train.gif" alt="typical drum trajectory prediction (train)" />
+<br />
+<br />
+<img src="/assets/ood/drum_ood.gif" alt="ood drum trajectory prediction (test)" />
+<br /></p>
+<h3 id="hopper">Hopper</h3>
+<p>The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+For OOD test samples the outlet hole size has decreased and the inclination angle has increased.
+<br />
+<br />
+<img src="/assets/ood/hopper_train.gif" alt="typical hopper trajectory prediction (train)" />
+<br />
+<br />
+<img src="/assets/ood/hopper_ood.gif" alt="ood hopper trajectory prediction (test)" /></p>
+
+<p><br /></p>
+<hr style="border-top: 1px solid #8c8b8b" />
+
+<p><br /></p>
+
+<h3 id="resources">Resources</h3>
+
+<p><a href="https://github.com/ml-jku/bgnn/">GitHub</a> (not yet released)</p>
+
+<h3 id="correspondance">Correspondance</h3>
+
+<p>Blog post written by Andreas Mayr (mayr[at]ml.jku.at) and Johannes Brandstetter (brandstetter[at]ml.jku.at).</p>
+
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/ml-jku/bgnn">bgnn</a> is maintained by <a href="https://github.com/ml-jku">ml-jku</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

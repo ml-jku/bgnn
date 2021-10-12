@@ -7,8 +7,22 @@ usemathjax: true
 ---
 
 Blog post of the paper [Boundary Graph Neural Networks for 3D Simulations][arxiv-paper].
+<br>
+<br>
+<hr style="border-top: 1px solid #8c8b8b">
+## Overview
 
-# Our aim
+- [Goal](#part1)
+- [Learning Simulations](#part2)
+- [BGNNs](#part3)
+- [Basic Evaluation](#part4)
+- [Out-of Distribution (OOD) Experiments](#part5)
+<br>
+<br>
+<hr style="border-top: 1px solid #8c8b8b">
+<br>
+
+# Our aim <a name="part1"></a>
 
 
 We want to learn complex 3D particle simulation trajectories from an initial state over many, many timesteps.
@@ -40,7 +54,7 @@ This task is far beyond trivial. The following examples show models for which **
 
 
 
-# How do we learn simulations?
+# How do we learn simulations? <a name="part2"></a>
 
 Our research is based on particle simulations from the particle simulator [LIGGGHTS][liggghts], which is based on the [Discrete Element Method (DEM)][DEM] and which is able to take complex mesh-based wall geometries into account.
 We consider trajectories from this simulator as our **ground truth simulations**.
@@ -58,7 +72,7 @@ $$
 
 where $$\boldsymbol{x}$$ represents the position of a particle, $$\dot{\boldsymbol{x}}$$ represents the particle velocity and $$\ddot{\boldsymbol{x}}$$ represents the particle acceleration.
 
-# Boundary Graph Neural Networks (BGNNs)
+# Boundary Graph Neural Networks (BGNNs) <a name="part3"></a>
 
 BGNNs extend traditional GNNs, such that the networks are capable of learning **particle - wall interactions** by dynamically inserting (virtual particle) nodes, if a particle is near a wall. Since we are focusing on the 3D domain, we do not sample all boundary surfaces and represent theses surfaces as static particles across the whole time. Instead  we insert additional nodes into the graph (representing virtual particles) if a boundary surface area is near a particle. Additionally, we enrich the feature space of GNN inputs in order to make e.g. wall **normal vector** information available for the graph network to learn a time transition model.
 The images below visualize the basic idea of BGNNs (measuring distances between walls and particles, insertion of virtual particle for wall if distance is smaller than a threshold):
@@ -88,7 +102,7 @@ The images below visualize the basic idea of BGNNs (measuring distances between 
 </table>
 
 
-# Does it work?
+# Does it work? <a name="part4"></a>
 
 We apply BGNNs to hoppers and rotating drums and use two different materials. For the **cohesive** material, there are large cohesive forces between the particles, while
 for the **non-cohesive** material, we are not making use of these additional forces. An exemplary cohesive material could be asphalt in a paver, whereas an exemplary non-cohesive material could be gravel.
@@ -112,6 +126,35 @@ Other than that there are (rolling) friction and restitution forces between part
 
 BGNNs have learned to accurately reproduce 3D granular flows over hundreds of thousands of simulation timesteps,
 and most notably particles completely stay within the geometric objects without using handcrafted conditions or restrictions.
+
+
+# Out-of Distribution (OOD) Experiments <a name="part5"></a>
+
+We further considered the case of OOD settings for the drum and the hopper. Compared with training and validation sets we changed the geometry
+for the test set samples.
+
+### Drum
+The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+For OOD test samples the length of the cylinder has increased compared to training and test samples.
+<br>
+<br>
+![typical drum trajectory prediction (train)](/assets/ood/drum_train.gif)
+<br>
+<br>
+![ood drum trajectory prediction (test)](/assets/ood/drum_ood.gif)
+<br>
+### Hopper
+The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+For OOD test samples the outlet hole size has decreased and the inclination angle has increased.
+<br>
+<br>
+![typical hopper trajectory prediction (train)](/assets/ood/hopper_train.gif)
+<br>
+<br>
+![ood hopper trajectory prediction (test)](/assets/ood/hopper_ood.gif)
+
+
+
 
 <br>
 <hr style="border-top: 1px solid #8c8b8b">
