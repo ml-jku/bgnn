@@ -101,7 +101,7 @@ The images below visualize the basic idea of BGNNs (measuring distances between 
 </tr>
 </table>
 
-Every particle “sees”at most one virtual particle representing the boundary surface area, namely that particle which has the shortest distance. Since interaction strength decreases continuously with the distance, it is ensured that for every particle-boundary interaction that boundary point with the largest contribution is considered.
+Every particle "sees" at most one virtual particle representing the boundary surface area, namely that particle which has the shortest distance. Since interaction strength decreases continuously with the distance, it is ensured that for every particle-boundary interaction that boundary point with the largest contribution is considered.
 
 # Does it work? <a name="part4"></a>
 
