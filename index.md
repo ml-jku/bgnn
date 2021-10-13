@@ -101,6 +101,7 @@ The images below visualize the basic idea of BGNNs (measuring distances between 
 </tr>
 </table>
 
+Every particle “sees”at most one virtual particle representing the boundary surface area, namely that particle which has the shortest distance. Since interaction strength decreases continuously with the distance, it is ensured that for every particle-boundary interaction that boundary point with the largest contribution is considered.
 
 # Does it work? <a name="part4"></a>
 
@@ -134,7 +135,7 @@ We further considered the case of OOD settings for the drum and the hopper. Comp
 for the test set samples.
 
 ### Drum
-The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+The following upper animation shows a typical example encountered in training, while the lower animation is an OOD test example.
 For OOD test samples the length of the cylinder has increased compared to training and test samples.
 <br>
 <br>
@@ -144,7 +145,7 @@ For OOD test samples the length of the cylinder has increased compared to traini
 ![ood drum trajectory prediction (test)](/assets/ood/drum_ood.gif)
 <br>
 ### Hopper
-The upper animation below shows a typical training example, while the animation directly beneath is an OOD example.
+The following upper animation shows a typical example encountered in training, while the lower animation is an OOD test example.
 For OOD test samples the outlet hole size has decreased and the inclination angle has increased.
 <br>
 <br>
