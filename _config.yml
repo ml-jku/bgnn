@@ -1,3 +1,5 @@
+title: Boundary Graph Neural Networks for 3D Simulations 
+description: Blog post 
+show_downloads: false
+google_analytics:
 theme: jekyll-theme-cayman
-kramdown:
-  math_engine: mathjax

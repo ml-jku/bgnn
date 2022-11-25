@@ -1,13 +1,11 @@
 ---
 layout: default
-title: "Boundary Graph Neural Networks for 3D Simulations"
-description: Blog post
-date: 2020-06-15 17:00:00 +0100
-usemathjax: true
 ---
 
-Blog post of the paper [Boundary Graph Neural Networks for 3D Simulations][arxiv-paper].
+This post gives further details to the paper [Boundary Graph Neural Networks for 3D Simulations][arxiv-paper], which was accepted for presentation at the Thirty-Seventh AAAI Conference on Artificial Intelligence (AAAI-23).
 <br>
+<br>
+Technical Appendix:  <a href="assets/bgnnTApp.pdf">Download</a><br>
 <br>
 <hr style="border-top: 1px solid #8c8b8b">
 ## Overview
@@ -24,14 +22,9 @@ Blog post of the paper [Boundary Graph Neural Networks for 3D Simulations][arxiv
 
 # Our aim <a name="part1"></a>
 
-
 We want to learn complex 3D particle simulation trajectories from an initial state over many, many timesteps.
 Seminal research on this topic was already carried out by [Sanchez-Gonzalez et al. [2020]][SanchezGonzalez2020]. They showed impressively how well particle simulation
-trajectories can be learned by Graph Neural Networks (GNNs):
-
-<p align="center"> 
-<iframe src="https://drive.google.com/file/d/1Udj80oklio3QIZGun2c8FSYU4hOZn0AV/preview" width="640" height="480"></iframe>
-</p>
+trajectories can be learned by Graph Neural Networks (GNNs).<br>
 
 In this work we want to go one step further.
 We aim to learn 3D simulations by Graph Neural Networks (GNNs) towards **industrially relevant setups**, such as hoppers and rotating drums.
@@ -50,6 +43,23 @@ This task is far beyond trivial. The following examples show models for which **
 <br>
 <br>
 ![poor hopper trajectory prediction](/assets/hopper_coh/failure.gif)
+<br>
+<br>
+In this work, we introduce an effective theory to model particle-boundary interactions, 
+from which we derive a new approach to accurately and effectively model granular flow
+processes within triangularized boundary surfaces.<br>
+<br>
+In physics, effective theories allow the description of phenomena within much simpler frameworks
+without a significant loss of precision. The basic idea is to approximate a physical system by 
+factoring out the degrees of freedom that are not relevant in the given setting and problem to solve.
+The following image shows, how we want to make use of this principle for effectively modelling granular flow
+processes with boundaries:
+
+<p align="center"> 
+<img src="assets/eff11.png" height="300" alt="Example for Triangle Meshes">
+</p>
+
+
 
 
 
@@ -77,29 +87,9 @@ where $$\boldsymbol{x}$$ represents the position of a particle, $$\dot{\boldsymb
 BGNNs extend traditional GNNs, such that the networks are capable of learning **particle - wall interactions** by dynamically inserting (virtual particle) nodes, if a particle is near a wall. Since we are focusing on the 3D domain, we do not sample all boundary surfaces and represent theses surfaces as static particles across the whole time. Instead  we insert additional nodes into the graph (representing virtual particles) if a boundary surface area is near a particle. Additionally, we enrich the feature space of GNN inputs in order to make e.g. wall **normal vector** information available for the graph network to learn a time transition model.
 The images below visualize the basic idea of BGNNs (measuring distances between walls and particles, insertion of virtual particle for wall if distance is smaller than a threshold):
 
-<style type="text/css">
-      tr.hide_all > td {
-        border-style:hidden;
-      }
-  }
-</style>
-  
-<table border="0" width="100%" cellspacing="0" cellpadding="0">
-<tr class="hide_all">
-
-<td width="50%">
 <p align="center"> 
-<img src="assets/vars_first.png" height="300" alt="Insertion of wall nodes in BGNNs">
+<img src="assets/eff21.png" height="300" alt="Example for Triangle Meshes">
 </p>
-</td>
-<td width="50%">
-<p align="center"> 
-<img src="assets/vars_sec.png" height="300" alt="Insertion of wall nodes in BGNNs">
-</p>
-</td>
-
-</tr>
-</table>
 
 Every particle "sees" at most one virtual particle representing the boundary surface area, namely that particle which has the shortest distance. Since interaction strength decreases continuously with the distance, it is ensured that for every particle-boundary interaction that boundary point with the largest contribution is considered.
 
@@ -163,7 +153,8 @@ For OOD test samples the outlet hole size has decreased and the inclination angl
 
 ### Resources
 
-[GitHub][GitHub] (not yet released)
+Code release: will be released [here][GitHub]. We are currently working on it.<br>
+Data: We are currently investigating, how we can best provide data.
 
 ### Correspondance
 
