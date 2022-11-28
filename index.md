@@ -5,8 +5,6 @@ layout: default
 This post gives further details to the paper [Boundary Graph Neural Networks for 3D Simulations][arxiv-paper], which was accepted for presentation at the Thirty-Seventh AAAI Conference on Artificial Intelligence (AAAI-23).
 <br>
 <br>
-Technical Appendix:  <a href="assets/bgnnTApp.pdf">Download</a><br>
-<br>
 <hr style="border-top: 1px solid #8c8b8b">
 ## Overview
 
