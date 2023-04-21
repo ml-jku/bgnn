@@ -1,0 +1,116 @@
+echo both
+atom_style  granular
+atom_modify map array
+communicate single vel yes
+boundary    f f f
+newton      off
+
+include     parametersInit.par
+
+
+units       si
+
+region      reg block ${regionX0} ${regionX1} ${regionY0} ${regionY1} ${regionZ0} ${regionZ1} units box
+create_box  3 reg
+
+neighbor    ${particle_size} bin
+neigh_modify delay 0
+
+timestep ${dt}
+
+fix     gravi all gravity 9.81 vector 0.0 0.0 -1.0
+
+
+fix         m1 all property/global youngsModulus peratomtype ${ym1} ${ym2} ${ym3}
+fix         m2 all property/global poissonsRatio peratomtype ${pr1} ${pr2} ${pr3}
+fix         m3 all property/global coefficientRestitution peratomtypepair 3 ${cr11} ${cr12} ${cr13} ${cr21} ${cr22} ${cr23} ${cr31} ${cr32} ${cr33}
+fix         m4 all property/global coefficientFriction peratomtypepair 3 ${cf11} ${cf12} ${cf13} ${cf21} ${cf22} ${cf23} ${cf31} ${cf32} ${cf33}
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 3 ${crf11} ${crf12} ${crf13} ${crf21} ${crf22} ${crf23} ${crf31} ${crf32} ${crf33}
+fix         m6 all property/global cohesionEnergyDensity peratomtypepair 3 ${ced11} ${ced12} ${ced13} ${ced21} ${ced22} ${ced23} ${ced31} ${ced32} ${ced33}
+
+#pair style
+pair_style gran model hertz tangential history cohesion sjkr rolling_friction epsd2 tangential_reduce off
+pair_coeff  * *
+
+
+
+
+variable hole_scale equal ${hole_size}/0.038*0.001
+
+#-import mesh from cad:
+variable minusWall_angle equal -${wall_angle}
+fix     bottom all mesh/surface/stress file meshes/hopper_bottom.stl type 1 scale 0.001
+fix     slanted_left  all mesh/surface/stress file meshes/hopper_slanted_wall.stl type 1 scale 0.001 rotate axis 0 1 0 angle  ${minusWall_angle} move -0.03 0. 0.046
+fix     slanted_right all mesh/surface/stress file meshes/hopper_slanted_wall.stl type 1 scale 0.001 rotate axis 0 1 0 angle  ${wall_angle} move  0.03 0. 0.046
+fix     front all mesh/surface/stress file meshes/hopper_side_wall.stl type 1 scale 0.001 move 0. 0.13 0.
+fix     back  all mesh/surface/stress file meshes/hopper_side_wall.stl type 1 scale 0.001
+fix     hole  all mesh/surface/stress file meshes/hopper_plate.stl type 1 scale ${hole_scale}
+fix     inlet all mesh/surface/planar file meshes/inlet.stl type 1 scale 0.001
+
+if "${open}==0" then &
+  "fix     regborder all mesh/surface/stress file meshes/border.stl type 1" &
+  "fix     granwalls all wall/gran model hertz tangential history cohesion sjkr rolling_friction epsd2 mesh n_meshes 7 meshes bottom slanted_left slanted_right front back hole regborder tangential_reduce off" &
+else &
+  "fix     granwalls all wall/gran model hertz tangential history cohesion sjkr rolling_friction epsd2 mesh n_meshes 6 meshes bottom slanted_left slanted_right front back hole tangential_reduce off"
+
+fix     plug all wall/gran model hertz tangential history cohesion sjkr rolling_friction epsd2 primitive type 2 zplane 0 tangential_reduce off
+
+fix pts1 all particletemplate/sphere ${templateSeed1} atom_type 2 density constant ${density21} radius constant ${rad211}
+fix pts2 all particletemplate/sphere ${templateSeed2} atom_type 2 density constant ${density21} radius constant ${rad212}
+fix pts3 all particletemplate/sphere ${templateSeed3} atom_type 2 density constant ${density22} radius constant ${rad221}
+fix pts4 all particletemplate/sphere ${templateSeed4} atom_type 2 density constant ${density22} radius constant ${rad222}
+fix pts5 all particletemplate/sphere ${templateSeed5} atom_type 3 density constant ${density31} radius constant ${rad311}
+fix pts6 all particletemplate/sphere ${templateSeed6} atom_type 3 density constant ${density31} radius constant ${rad312}
+fix pts7 all particletemplate/sphere ${templateSeed7} atom_type 3 density constant ${density32} radius constant ${rad321}
+fix pts8 all particletemplate/sphere ${templateSeed8} atom_type 3 density constant ${density32} radius constant ${rad322}
+
+fix pdd1 all particledistribution/discrete/numberbased ${pdistSeed1} 8 pts1 ${tp11} pts2 ${tp12} pts3 ${tp13} pts4 ${tp14} pts5 ${tp15} pts6 ${tp16} pts7 ${tp17} pts8 ${tp18}
+
+
+
+variable extrusion_length equal 0.045
+variable ins_mass equal 0.06*0.13*${extrusion_length}*0.2*(${tp11}*${density21}+${tp12}*${density21}+${tp13}*${density22}+${tp14}*${density22}+${tp15}*${density31}+${tp16}*${density31}+${tp17}*${density32}+${tp18}*${density32}) #${density}   #len/width/depth==0.06/0.13/extrusion_length
+variable ins_vel equal -1.0
+variable ins_duration equal ${extrusion_length}/(-${ins_vel})
+variable ins_rate equal ${ins_mass}/${ins_duration}
+fix   ins all insert/stream seed ${insSeed1} distributiontemplate pdd1 nparticles ${particles_to_insert} massrate ${ins_rate} overlapcheck yes all_in yes vel constant 0.0 0.0 ${ins_vel} insertion_face inlet extrude_length ${extrusion_length}
+
+#apply nve integration to all particles that are inserted as single particles
+fix     integr all nve/sphere
+
+variable nthermo equal ceil(${status_output}/${dt})
+fix     ts all check/timestep/gran ${nthermo} 0.11 0.11
+
+
+compute rke all erotate/sphere
+thermo_style    custom step time atoms ke c_rke f_ts[1] f_ts[2]
+thermo  ${nthermo}
+thermo_modify   lost ignore norm no
+
+#compute total mass in hopper, write to file in a format that octave can read
+variable    totalmass equal mass(all)
+shell       mkdir post
+fix         extra all print ${nthermo} "${totalmass}" screen no file post/mass.txt title "%particle mass over time"
+
+run     1
+
+variable nsteps equal ceil(${run_time}/${dt})
+
+dump    dump_parts all custom/vtk ${nsteps} post/init_particles_*.vtp id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz tqx tqy tqz radius density
+dump    dump_walls all mesh/vtk ${nsteps} post/init_walls_*.vtp stress
+
+run     ${nsteps} upto
+
+undump dump_parts
+undump dump_walls
+
+# remove blocking wall
+unfix   plug
+unfix   ins
+unfix granwalls
+if "${open}==0" then &
+  "unfix regborder"
+unfix inlet
+
+write_restart restart/post_init_size.restart
+#write_data mydata.data

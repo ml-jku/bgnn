@@ -1,0 +1,78 @@
+# general settings
+atom_style  granular
+atom_modify map array
+boundary    f f f
+newton      off
+
+include parametersMain.par
+
+communicate single vel yes
+
+units       si
+
+#read_restart restart/post_init.restart
+read_data init.data
+
+neighbor     ${particle_size} bin
+neigh_modify delay 0
+
+timestep ${dt}
+
+# inclination of drum
+variable  yVec  equal sin(${inclination_angle}*PI/180)
+variable  zVec  equal cos(${inclination_angle}*PI/180)
+variable  gz    equal -${zVec}
+fix   gravi all gravity 9.81 vector 0.0 ${yVec} ${gz}
+
+# material properties
+fix         m1 all property/global youngsModulus peratomtype ${ym1} ${ym2} ${ym3}
+fix         m2 all property/global poissonsRatio peratomtype ${pr1} ${pr2} ${pr3}
+fix         m3 all property/global coefficientRestitution peratomtypepair 3 ${cr11} ${cr12} ${cr13} ${cr21} ${cr22} ${cr23} ${cr31} ${cr32} ${cr33}
+fix         m4 all property/global coefficientFriction peratomtypepair 3 ${cf11} ${cf12} ${cf13} ${cf21} ${cf22} ${cf23} ${cf31} ${cf32} ${cf33}
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 3 ${crf11} ${crf12} ${crf13} ${crf21} ${crf22} ${crf23} ${crf31} ${crf32} ${crf33}
+fix         m6 all property/global cohesionEnergyDensity peratomtypepair 3 ${ced11} ${ced12} ${ced13} ${ced21} ${ced22} ${ced23} ${ced31} ${ced32} ${ced33}
+
+#New pair style
+pair_style gran model hertz tangential history cohesion sjkr rolling_friction epsd2 tangential_reduce off
+pair_coeff * *
+
+
+
+
+
+
+#the cad files
+fix   drum      all mesh/surface/stress file meshes/drum.stl type 1 scale 0.5
+fix   cap_left  all mesh/surface/stress file meshes/cap.stl type 1 scale 0.5
+fix   cap_right all mesh/surface/stress file meshes/cap.stl type 1 scale 0.5 move 0. 0.5 0.
+fix   granwalls all wall/gran model hertz tangential history cohesion sjkr rolling_friction epsd2 mesh n_meshes 3 meshes drum cap_left cap_right tangential_reduce off
+
+# mesh motion
+fix   moveDrum  all move/mesh mesh drum     rotate origin 0. 0. 0. axis 0. 1. 0. period ${rotation_period}
+fix   moveCapL  all move/mesh mesh cap_left rotate origin 0. 0. 0. axis 0. 1. 0. period ${rotation_period}
+fix   moveCapR  all move/mesh mesh cap_right rotate origin 0. 0. 0. axis 0. 1. 0. period ${rotation_period}
+
+
+
+#apply nve integration to all particles that are inserted as single particles
+fix   integr all nve/sphere
+
+variable nthermo equal ceil(${status_output}/${dt})
+variable ndump equal ceil(${data_output}/${dt})
+
+fix   ts all check/timestep/gran ${nthermo} 0.1 0.1
+
+#output settings, include total thermal energy
+compute        rke all erotate/sphere
+thermo_style   custom step time atoms ke c_rke f_ts[1] f_ts[2]
+thermo         ${nthermo}
+thermo_modify  lost ignore norm no
+
+#insert the first particles so that dump is not empty
+dump  dump_parts all custom/vtk ${ndump} post/main_particles_*.vtp id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz tqx tqy tqz radius density
+dump  dump_walls all mesh/vtk ${ndump} post/main_walls_*.vtp stress
+
+variable nsteps equal ceil(${run_time}/${dt})
+
+# run inserting particles
+run   ${nsteps}

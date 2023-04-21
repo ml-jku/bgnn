@@ -1,0 +1,108 @@
+# general settings
+atom_style  granular
+atom_modify map array
+boundary    f f f
+newton      off
+
+include parametersInit.par
+
+communicate single vel yes
+
+units       si
+
+region      reg block -0.6 0.6 -0.6 0.6 -0.6 0.6 units box
+create_box  3 reg
+
+neighbor     ${particle_size} bin
+neigh_modify delay 0
+
+timestep ${dt}
+
+# inclination of drum
+variable  yVec  equal sin(${inclination_angle}*PI/180)
+variable  zVec  equal cos(${inclination_angle}*PI/180)
+variable  gz    equal -${zVec}
+fix   gravi all gravity 9.81 vector 0.0 ${yVec} ${gz}
+
+# material properties
+fix         m1 all property/global youngsModulus peratomtype ${ym1} ${ym2} ${ym3}
+fix         m2 all property/global poissonsRatio peratomtype ${pr1} ${pr2} ${pr3}
+fix         m3 all property/global coefficientRestitution peratomtypepair 3 ${cr11} ${cr12} ${cr13} ${cr21} ${cr22} ${cr23} ${cr31} ${cr32} ${cr33}
+fix         m4 all property/global coefficientFriction peratomtypepair 3 ${cf11} ${cf12} ${cf13} ${cf21} ${cf22} ${cf23} ${cf31} ${cf32} ${cf33}
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 3 ${crf11} ${crf12} ${crf13} ${crf21} ${crf22} ${crf23} ${crf31} ${crf32} ${crf33}
+fix         m6 all property/global cohesionEnergyDensity peratomtypepair 3 ${ced11} ${ced12} ${ced13} ${ced21} ${ced22} ${ced23} ${ced31} ${ced32} ${ced33}
+
+#New pair style
+pair_style gran model hertz tangential history cohesion sjkr rolling_friction epsd2 tangential_reduce off
+pair_coeff * *
+
+
+
+
+
+
+#the cad files
+fix   drum      all mesh/surface/stress file meshes/drum.stl type 1 scale 0.5
+fix   cap_left  all mesh/surface/stress file meshes/cap.stl type 1 scale 0.5
+fix   cap_right all mesh/surface/stress file meshes/cap.stl type 1 scale 0.5 move 0. 0.5 0.
+fix   granwalls all wall/gran model hertz tangential history cohesion sjkr rolling_friction epsd2 mesh n_meshes 3 meshes drum cap_left cap_right tangential_reduce off
+
+
+
+fix pts1 all particletemplate/sphere ${templateSeed1} atom_type 2 density constant ${density21} radius constant ${rad211}
+fix pts2 all particletemplate/sphere ${templateSeed2} atom_type 2 density constant ${density21} radius constant ${rad212}
+fix pts3 all particletemplate/sphere ${templateSeed3} atom_type 2 density constant ${density22} radius constant ${rad221}
+fix pts4 all particletemplate/sphere ${templateSeed4} atom_type 2 density constant ${density22} radius constant ${rad222}
+fix pts5 all particletemplate/sphere ${templateSeed5} atom_type 3 density constant ${density31} radius constant ${rad311}
+fix pts6 all particletemplate/sphere ${templateSeed6} atom_type 3 density constant ${density31} radius constant ${rad312}
+fix pts7 all particletemplate/sphere ${templateSeed7} atom_type 3 density constant ${density32} radius constant ${rad321}
+fix pts8 all particletemplate/sphere ${templateSeed8} atom_type 3 density constant ${density32} radius constant ${rad322}
+
+fix pdd1 all particledistribution/discrete/numberbased ${pdistSeed1} 8 pts1 ${tp11} pts2 ${tp12} pts3 ${tp13} pts4 ${tp14} pts5 ${tp15} pts6 ${tp16} pts7 ${tp17} pts8 ${tp18}
+fix pdd2 all particledistribution/discrete/numberbased ${pdistSeed2} 8 pts1 ${tp21} pts2 ${tp22} pts3 ${tp23} pts4 ${tp24} pts5 ${tp25} pts6 ${tp26} pts7 ${tp27} pts8 ${tp28}
+
+variable  ypris equal ${yVec}*(1.0)*0.24*1.5
+variable  zpris equal ${zVec}*(1.0)*0.24*1.5
+variable  myylo equal -0.24-${ypris}
+variable  myyhi equal 0.24-${ypris}
+variable  myzlo equal -0.24+${zpris}
+variable  myzhi equal 0.24+${zpris}
+region drum_region0 cylinder y 0. 0. 0.24 -0.24 0.24
+region drum_region1 block -0.24 0.24 -0.24 0.24 ${myzlo} ${myzhi}
+region drum_region2 prism -0.24 0.24 ${myylo} ${myyhi} ${myzlo} ${myzhi} 0.0 0.0 0.0
+region drum_region intersect 3 drum_region0 drum_region1 drum_region2
+
+
+
+#apply nve integration to all particles that are inserted as single particles
+fix   integr all nve/sphere
+
+variable nthermo equal ceil(${status_output}/${dt})
+fix   ts all check/timestep/gran ${nthermo} 0.1 0.1
+
+#output settings, include total thermal energy
+compute        rke all erotate/sphere
+thermo_style   custom step time atoms ke c_rke f_ts[1] f_ts[2]
+thermo         ${nthermo}
+thermo_modify  lost ignore norm no
+
+#insert the first particles so that dump is not empty
+
+variable nsteps1 equal ceil(${run_time}/${dt})
+variable nsteps2 equal ${nsteps1}*2
+
+dump  dump_parts all custom/vtk ${nsteps2} post/init_particles_*.vtp id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz tqx tqy tqz radius density
+dump  dump_walls all mesh/vtk ${nsteps2} post/init_walls_*.vtp stress
+
+fix ins1 all insert/pack seed ${insSeed1} distributiontemplate pdd1 insert_every once overlapcheck yes particles_in_region ${particles_to_insert1} region drum_region ntry_mc 10000
+run   ${nsteps1} upto
+unfix ins1
+
+fix ins2 all insert/pack seed ${insSeed2} distributiontemplate pdd2 insert_every once overlapcheck yes particles_in_region ${particles_to_insert2} region drum_region ntry_mc 10000
+run   ${nsteps2} upto
+unfix ins2
+
+undump dump_parts
+undump dump_walls
+
+write_restart   restart/post_init.restart

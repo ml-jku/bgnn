@@ -1,0 +1,111 @@
+echo both
+atom_style  granular
+atom_modify map array
+communicate single vel yes
+
+include     parameters.par
+
+boundary    f f f
+newton      off
+
+units       si
+
+region      reg block ${regionX0} ${regionX1} ${regionY0} ${regionY1} ${regionZ0} ${regionZ1} units box
+create_box  2 reg
+
+neighbor    ${particle_size} bin
+neigh_modify delay 0
+
+#Material properties required for new pair styles
+fix         m1 all property/global youngsModulus peratomtype ${ym1} ${ym2}
+fix         m2 all property/global poissonsRatio peratomtype ${pr1} ${pr2}
+fix         m3 all property/global coefficientRestitution peratomtypepair 2 ${cr11} ${cr12} &
+                                                                            ${cr21} ${cr22}
+fix         m4 all property/global coefficientFriction peratomtypepair 2    ${cf11} ${cf12} &
+                                                                            ${cf21} ${cf22}
+fix         m5 all property/global coefficientRollingFriction peratomtypepair 2 ${crf11} ${crf12} &
+                                                                                ${crf21} ${crf22}
+
+#pair style
+pair_style  gran model hertz tangential history rolling_friction epsd2
+pair_coeff  * *
+
+#timestep
+variable dt equal 2.5e-5
+timestep ${dt}
+
+fix     gravi all gravity 9.81 vector 0.0 0.0 -1.0
+
+variable hole_scale equal ${hole_size}/0.038*0.001
+
+#-import mesh from cad:
+fix     bottom all mesh/surface/stress file meshes/hopper_bottom.stl type 2 scale 0.001
+#consider -${wall_angle} is actually wrong (as the parser seems not able to process it correctly), but it's kept for reproducibility reasons
+fix     slanted_left  all mesh/surface/stress file meshes/hopper_slanted_wall.stl type 2 scale 0.001 rotate axis 0 1 0 angle -${wall_angle} move -0.03 0. 0.046
+fix     slanted_right all mesh/surface/stress file meshes/hopper_slanted_wall.stl type 2 scale 0.001 rotate axis 0 1 0 angle  ${wall_angle} move  0.03 0. 0.046
+fix     front all mesh/surface/stress file meshes/hopper_side_wall.stl type 2 scale 0.001 move 0. 0.13 0.
+fix     back  all mesh/surface/stress file meshes/hopper_side_wall.stl type 2 scale 0.001
+fix     hole  all mesh/surface/stress file meshes/hopper_plate.stl type 2 scale ${hole_scale}
+fix     inlet all mesh/surface/planar file meshes/inlet.stl type 1 scale 0.001
+fix     regborder all mesh/surface/stress file meshes/border.stl type 2
+
+#-use the imported mesh as granular wall
+fix     granwalls all wall/gran model hertz tangential history rolling_friction epsd2 mesh n_meshes 7 meshes bottom slanted_left slanted_right front back hole regborder
+
+fix     plug all wall/gran model hertz tangential history rolling_friction epsd2 primitive type 2 zplane 0
+
+#particle insertion
+#variable density equal 2500
+fix   pts1 all particletemplate/sphere 15485863 atom_type 1 density constant ${density} radius constant ${particle_size}
+fix   pdd1 all particledistribution/discrete 49979687 1 pts1 1.0
+
+variable extrusion_length equal 0.045
+variable ins_mass equal 0.06*0.13*${extrusion_length}*0.2*${density}   #len/width/depth==0.06/0.13/extrusion_length
+variable ins_vel equal -1.0
+variable ins_duration equal ${extrusion_length}/(-${ins_vel})
+variable ins_rate equal ${ins_mass}/${ins_duration}
+fix   ins all insert/stream seed 67867967 distributiontemplate pdd1 nparticles ${particles_to_insert} massrate ${ins_rate} overlapcheck yes all_in yes vel constant 0.0 0.0 ${ins_vel} insertion_face inlet extrude_length ${extrusion_length}
+
+#apply nve integration to all particles that are inserted as single particles
+fix     integr all nve/sphere
+
+#output settings
+variable nthermo equal ceil(${status_output}/${dt})
+variable ndump equal ceil(${data_output}/${dt})
+
+fix     ts all check/timestep/gran ${nthermo} 0.11 0.11
+compute rke all erotate/sphere
+thermo_style    custom step time atoms ke c_rke f_ts[1] f_ts[2]
+thermo  ${nthermo}
+thermo_modify   lost ignore norm no
+
+#compute total mass in hopper, write to file in a format that octave can read
+variable    totalmass equal mass(all)
+shell       mkdir post
+fix         extra all print ${nthermo} "${totalmass}" screen no file post/mass.txt title "%particle mass over time"
+
+#regular dump
+run     1
+
+#insert particles and let them settle
+variable nsteps equal ceil(${run_time_init}/${dt})
+
+dump    dump_parts all custom/vtk ${nsteps} post/init_particles_*.vtp id type x y z ix iy iz vx vy vz fx fy fz omegax omegay omegaz tqx tqy tqz radius density
+dump    dump_walls all mesh/vtk ${nsteps} post/init_walls_*.vtp stress
+
+run     ${nsteps} upto
+
+undump dump_parts
+undump dump_walls
+
+# remove blocking wall
+unfix   plug
+
+unfix   ins
+
+unfix granwalls
+unfix regborder
+unfix inlet
+
+write_restart restart/post_init_size.restart
+#write_data mydata.data
