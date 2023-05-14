@@ -29,6 +29,8 @@ LIGGGHTS is dependent on 2 software libraries:
 
 Further, CMake might be needed for compilation. We used version 3.7.2 (available at [http://www.cmake.org/files/v3.7/cmake-3.7.2.tar.gz](http://www.cmake.org/files/v3.7/cmake-3.7.2.tar.gz)).
 `VTK_INC_USR` and `VTK_LIB_USR` need to be adjusted wrt. the VTK installation in `Makefile.user` before installing LIGGGHTS.
+
+Most simple in creating the used simulation data is possibly following the pipeline described by the script [scripts/dataCreationPipeline.sh](scripts/dataCreationPipeline.sh). First of all, machines are initialized with an initial particle filling, which may then be modified by arbitrary operations. Afterwards the simulations of interest are run. Finally, data is converted to NumPy format and there is some precomputation in order to speed up training.
 \
 \
 \
