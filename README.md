@@ -30,7 +30,9 @@ LIGGGHTS is dependent on 2 software libraries:
 Further, CMake might be needed for compilation. We used version 3.7.2 (available at [http://www.cmake.org/files/v3.7/cmake-3.7.2.tar.gz](http://www.cmake.org/files/v3.7/cmake-3.7.2.tar.gz)).
 `VTK_INC_USR` and `VTK_LIB_USR` need to be adjusted wrt. the VTK installation in `Makefile.user` before installing LIGGGHTS.
 
-Most simple in creating the used simulation data is possibly following the pipeline described by the script [scripts/dataCreationPipeline.sh](scripts/dataCreationPipeline.sh). First of all, machines are initialized with an initial particle filling, which may then be modified by arbitrary operations. Afterwards the simulations of interest are run. Finally, data is converted to NumPy format and there is some precomputation in order to speed up training.
+Most simple in creating the used simulation data is possibly following the pipeline described by the script [scripts/dataCreationPipeline.sh](scripts/dataCreationPipeline.sh). First of all, machines are initialized with an initial particle filling (set and sample initial parameters by `createInit` followed by `execInit`), which may then be modified by arbitrary operations (`createMainCut`). Afterwards the simulations of interest are run (`execMain`). Finally, data is converted to NumPy format (`extractParticles`, `extractWalls`) and there is some precomputation in order to speed up training (`particleStatisticsLen`, `particleStatisticsVec`, `particleWallDistances`).
+
+The code scripts can be found in [problems](problems). Especially, we considered a hopper, a rotating drum, and a mixer geometry. Detailed scripts for each step in the pipeline are available in the subdirectories of [problems/code](problems/code). Consider, that for some problems, uncertainty computations are included (cohesive and non-cohesive hopper and rotating drum) and therefore there are a few more steps to create all data for these problems. The implementation of arbitrary operations applied to initial particle fillings are available at [problems/cutTools](problems/cutTools). Raw LIGGGHTS template scripts can be found at [problems/templates](problems/templates).
 
 ## BGNN Model Training and Inference
 
@@ -61,8 +63,4 @@ Further, some general utility scripts, such as converting NumPy data to VTK and 
 
 \
 \
-\
-Update: April, 21st, 2023\
-We are now providing the whole pipeline for producing data as well as training and prediction code for BGNNs.
-
-Last Update: May, 15th, 2023
+Last Update: May, 22nd, 2023
