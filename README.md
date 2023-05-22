@@ -47,8 +47,17 @@ The functionality was derived from the [Graph Nets](https://www.deepmind.com/ope
 We applied some adaptions to their code. The actual graph network model architecture is also determined by `confXY.py`-configuration scripts.
 
 Rollout functionality is implemented by `rollout*.py`-scripts. Node and edge feature computation is implemented in `featureOptions1.py` and `featureOptions2.py`.
-`util.py` implements basic utility functions, e.g., computing feature statistics for normalization purposes. Triangle-Point distance computation is implemented by `wallInfo_tf.py` and `wallInfo_torch.py`.
+`util.py` implements basic utility functions, e.g., computing feature statistics for normalization purposes. Triangle-Point distance computation is implemented by `wallInfo_tf.py` and `wallInfo_torch.py`. `saveModel.py` and `loadModel.py` are used to store BGNN models to disk and load them from the disk.
 
+Code for the simulation experiment in chapter *TApp. C.2* can be found in [bgnn/tf/fexp](bgnn/tf/fexp), while code for ablation experiments (chapter *TApp. D.5*) can be found in [bgnn/tf/ablations](bgnn/tf/ablations). The structure of the scripts follows in principle those in [bgnn/tf](bgnn/tf) with some adaptions.
+
+## Analysis and Utility Scripts
+
+Scripts to reproduce curves of analysis plots in the paper are provided at [scripts/visualizations](scripts/visualizations). `hopper_initial.py` and `drum_initial.py` correspond to plots in [Learning 3D Granular Flow Simulations](https://arxiv.org/abs/2105.01636).
+
+Code how statistical tests in *TApp. C.2* and *TApp. D.4* were applied can be found in `testC2.py` and `testD4.py` in [scripts](scripts) respectively. The numbers in *Table 1* were obtained by scripts in [scripts/grw](scripts/grw).
+
+Further, some general utility scripts, such as converting NumPy data to VTK and vice versa are provided in  [scripts](scripts).
 
 \
 \
