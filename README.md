@@ -31,6 +31,14 @@ Further, CMake might be needed for compilation. We used version 3.7.2 (available
 `VTK_INC_USR` and `VTK_LIB_USR` need to be adjusted wrt. the VTK installation in `Makefile.user` before installing LIGGGHTS.
 
 Most simple in creating the used simulation data is possibly following the pipeline described by the script [scripts/dataCreationPipeline.sh](scripts/dataCreationPipeline.sh). First of all, machines are initialized with an initial particle filling, which may then be modified by arbitrary operations. Afterwards the simulations of interest are run. Finally, data is converted to NumPy format and there is some precomputation in order to speed up training.
+
+## BGNN Model Training and Inference
+
+BGNN model training and inference for the hopper and the rotating drum are implemented in TensorFlow 2 and are available in the directory [bgnn/tf](bgnn/tf).
+Training and inference code for the mixer are implemented in PyTorch and are available in the directory [bgnn/pytorch](bgnn/pytorch).
+
+Most of the time the main entry points are the `processXY.py`-scripts with `X` being the problem name and `Y` being a version.
+There are several command-line parameters, which work in principal as follows: If one, wants to do inference using an already trained and saved model, or one wants to continue training a saved model, the name of the model directory needs to be specified for the argument `-saveName`. Otherwise, if a model should be trained from scratch, the argument should be kept empty. `-train` determines, whether the script should be run in train or in inference mode. `-problem` and `-experiment` determine an actual directory with ground-truth simulation trajectories. `-execRollout` determines, whether rollout evaluations should be executed  during training. `-evalSequence` and `-plotSequence` allow to specify which sequences should be evaluated during training or at the inference stage. Usually, the convention was to use sequences 0-29 for training, sequences 30-34 for hyperparameter selection, and, sequences 35-39 for final testing/evaluation. The number of rollout-timesteps can be adjusted by `-evalTimesteps`; `-modulo`, `-vtkOutput`, and, `-npOutput` allow to specify the frequency and whether files with the corresponding output formats should be created for the predicted rollout sequences. 
 \
 \
 \
