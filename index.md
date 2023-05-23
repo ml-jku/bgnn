@@ -151,7 +151,7 @@ For OOD test samples the outlet hole size has decreased and the inclination angl
 
 ### Resources
 
-Code release: [https://github.com/ml-jku/bgnn/][GitHub].<br>
+Code release: [https://github.com/ml-jku/bgnn/][GitHub]<br>
 Data: [https://ml.jku.at/research/bgnn/download/](https://ml.jku.at/research/bgnn/download/)
 
 ### Correspondance
