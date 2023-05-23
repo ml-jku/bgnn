@@ -1,0 +1,2 @@
+Python 3.8.6 | packaged by conda-forge | (default, Jan 25 2021, 23:21:18) 
+[GCC 9.3.0]
