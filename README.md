@@ -18,6 +18,10 @@ BibTeX (arXiv manuscript):
 >&nbsp;&nbsp;`primaryClass={cs.LG}`\
 >`}`  
 
+## Preliminary Note
+
+Please consider, to adjust the base directory names in the individual files according to your own environment (e.g. especially search for the strings `-data/BGNN/` and `-data/BGNNRuns/` and adjust the base directory names). Further, it is assumed, that this code repository is at `$HOME/git/bgnn`.
+
 ## Simulation Data
 
 General simulation settings used by the scripts in this repository (i.e., especially randomly chosen hyperparameters, seeds, etc.) are given by the file [data/bgnn.zip](data/bgnn.zip).
@@ -61,6 +65,20 @@ Code how statistical tests in *TApp. C.2* and *TApp. D.4* were applied can be fo
 
 Further, some general utility scripts, such as converting NumPy data to VTK and vice versa are provided in  [scripts](scripts).
 
+## Comments on the Data Repository
+
+Availability:  [https://ml.jku.at/research/bgnn/download/](https://ml.jku.at/research/bgnn/download/)
+
+The repository consists of 4 ZIP files:
+- [BGNN.zip](https://ml.jku.at/research/bgnn/download/BGNN.zip): contains parameters to reproduce simulations + run of initial filling and random operations (`createMainCut`); main simulations runs (beginning with `execMain`), conversion, and precomputation steps are still necessary (see [Simulation Data](#simulation-data)) as the file for download would otherwise get quite large
+
+- [models.zip](https://ml.jku.at/research/bgnn/download/models.zip): contains saved BGNN models
+- [trajectories.zip](https://ml.jku.at/research/bgnn/download/trajectories.zip): contains trajectory rollouts used in the publication
+- [evaluations.zip](https://ml.jku.at/research/bgnn/download/evaluations.zip): contains evaluation results, which were further used in the publication (not computed for all trajectories)
+
+Ideally the content of `BGNN.zip` is extracted to a directory `$BGNN_BASEDIR/BGNN`, while the content of the other files is extracted into a directory `$BGNN_BASEDIR/BGNNRuns`, such that `$BGNN_BASEDIR/BGNNRuns` consists of subdirectories containing `models`, `trajectories`, and `evaluations`. Further,  (empty) subdirectories with the names `info` and `predictions` should be created in `$BGNN_BASEDIR/BGNNRuns`. `$BGNN_BASEDIR/BGNN` consists of subdirectories `hopper`, `drum`, and `mixer`.
+
+
 \
 \
-Last Update: May, 22nd, 2023
+Last Update: May, 23nd, 2023
