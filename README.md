@@ -67,6 +67,8 @@ Code how statistical tests in *TApp. C.2* and *TApp. D.4* were applied can be fo
 
 Further, some general utility scripts, such as converting NumPy data to VTK and vice versa are provided in  [scripts](scripts).
 
+To visualize particle trajectories given by VTK files, [ParaView](https://www.paraview.org/) can be used.
+
 ## Comments on the Data Repository
 
 Availability:  [https://ml.jku.at/research/bgnn/download/](https://ml.jku.at/research/bgnn/download/)
