@@ -19,6 +19,8 @@ BibTeX (arXiv manuscript):
 }
 ```` 
 
+There is also a [Blog post](https://ml-jku.github.io/bgnn/) for a quick introduction to the paper.
+
 ## Preliminary Note
 
 Please consider, to adjust the base directory names in the individual files according to your own environment (e.g., especially search for the strings `-data/BGNN/` and `-data/BGNNRuns/` and adjust the base directory names). Further, it is assumed, that this code repository is at `$HOME/git/bgnn`. For analysis scripts, a few further directories in `$HOME` are used, such as `bgnnPlots` or `bgnnInfo`. \
@@ -86,4 +88,4 @@ Ideally the content of `BGNN.zip` is extracted to a directory `$BGNN_BASEDIR/BGN
 
 \
 \
-Last Update: May, 23nd, 2023
+Last Update: May, 24th, 2023
