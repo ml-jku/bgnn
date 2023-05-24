@@ -8,15 +8,16 @@ A **data repository** is available at [https://ml.jku.at/research/bgnn/download/
 Currently the conference proceedings from 2023 do not yet seem to be available. In the meantime, you can access our associated [arXiv manuscript](https://arxiv.org/abs/2106.11299), where you can also find the technical appendix.
 
 BibTeX (arXiv manuscript):
-
->`@article{bib:Mayr2023,`\
->&nbsp;&nbsp;`title={{Boundary Graph Neural Networks for 3D Simulations}},`\
->&nbsp;&nbsp;`author={Mayr, Andreas and Lehner, Sebastian and Mayrhofer, Arno and Kloss, Christoph and Hochreiter, Sepp and Brandstetter, Johannes},`\
->&nbsp;&nbsp;`year={2023},`\
->&nbsp;&nbsp;`eprint={2106.11299},`\
->&nbsp;&nbsp;`archivePrefix={arXiv},`\
->&nbsp;&nbsp;`primaryClass={cs.LG}`\
->`}`  
+````
+@article{bib:Mayr2023,
+      title={Boundary Graph Neural Networks for 3D Simulations}, 
+      author={Andreas Mayr and Sebastian Lehner and Arno Mayrhofer and Christoph Kloss and Sepp Hochreiter and Johannes Brandstetter},
+      year={2023},
+      eprint={2106.11299},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+```` 
 
 ## Preliminary Note
 
