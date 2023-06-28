@@ -5,19 +5,46 @@ This is the **code repository** for our paper *Boundary Graph Neural Networks fo
 
 A **data repository** is available at [https://ml.jku.at/research/bgnn/download/](https://ml.jku.at/research/bgnn/download/).
 
-Currently the conference proceedings from 2023 do not yet seem to be available. In the meantime, you can access our associated [arXiv manuscript](https://arxiv.org/abs/2106.11299), where you can also find the technical appendix.
-
-BibTeX (arXiv manuscript):
+BibTeX ([conference proceedings](https://ojs.aaai.org/index.php/AAAI/article/view/26092)):
 ````
-@article{bib:Mayr2023,
-      title={Boundary Graph Neural Networks for 3D Simulations}, 
-      author={Andreas Mayr and Sebastian Lehner and Arno Mayrhofer and Christoph Kloss and Sepp Hochreiter and Johannes Brandstetter},
-      year={2023},
-      eprint={2106.11299},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{bib:Mayr2023_1, 
+   title={Boundary Graph Neural Networks for 3D Simulations},
+   volume={37}, 
+   url={https://ojs.aaai.org/index.php/AAAI/article/view/26092}, 
+   DOI={10.1609/aaai.v37i8.26092},
+   number={8},
+   journal={Proceedings of the AAAI Conference on Artificial Intelligence},
+   author={Mayr, Andreas and Lehner, Sebastian and Mayrhofer, Arno and Kloss, Christoph and Hochreiter, Sepp and Brandstetter, Johannes},
+   year={2023},
+   month={Jun.},
+   pages={9099-9107}
 }
-```` 
+````
+
+The related [arXiv manuscript](https://arxiv.org/abs/2106.11299) contains the technical appendix. It's BibTeX entry is:
+````
+@article{bib:Mayr2023_2,
+   title={Boundary Graph Neural Networks for 3D Simulations}, 
+   author={Andreas Mayr and Sebastian Lehner and Arno Mayrhofer and Christoph Kloss and Sepp Hochreiter and Johannes Brandstetter},
+   year={2023},
+   eprint={2106.11299},
+   archivePrefix={arXiv},
+   primaryClass={cs.LG}
+}
+````
+
+One may be also interested in a related [workshop paper](https://arxiv.org/abs/2105.01636), published at the [Deep Learning for Simulation (SimDL)](https://simdl.github.io/) ICLR 2021 Workshop (held virtually at [https://iclr.cc/virtual/2021/workshop/2141](https://iclr.cc/virtual/2021/workshop/2141)):
+
+````
+@article{bib:Mayr2021,
+   title={Learning 3D Granular Flow Simulations}, 
+   author={Andreas Mayr and Sebastian Lehner and Arno Mayrhofer and Christoph Kloss and Sepp Hochreiter and Johannes Brandstetter},
+   year={2021},
+   eprint={2105.01636},
+   archivePrefix={arXiv},
+   primaryClass={cs.LG}
+}
+````
 
 There is also a [Blog post](https://ml-jku.github.io/bgnn/) for a quick introduction to the paper.
 
@@ -88,4 +115,4 @@ Ideally the content of `BGNN.zip` is extracted to a directory `$BGNN_BASEDIR/BGN
 
 \
 \
-Last Update: May, 24th, 2023
+Last Update: June, 28th, 2023
